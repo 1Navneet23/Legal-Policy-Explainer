@@ -30,11 +30,12 @@ def main():
         print(final_answer)
         
         print("\n--- Answer Complete ---")
-    except Exception as e:
-        print("An error occured:",(e))
     except FileNotFoundError:
         print("PDF file not found. Please ensure the file path is correct.")
 
+    except Exception as e:
+        print("An error occured:",(e))
+     
 
 if __name__ == "__main__":
     main()
