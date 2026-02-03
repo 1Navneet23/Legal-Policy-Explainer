@@ -1,13 +1,13 @@
-from sentence_transformers import SentenceTransformer
+
 from backend.text_splitter import text_splitter
 from backend.pdf_reader import py_reader
 from backend.embeddings import get_embeddings
 from sklearn.metrics.pairwise import cosine_similarity
-
+from backend.model_loader import embedding_model
 
 def get_search_result(chunks, embeddings, query):
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    query_embedding = model.encode(query)
+     
+    query_embedding = embedding_model.encode(query)
 
     best_score = -1
     best_index = -1
