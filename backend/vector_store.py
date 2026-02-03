@@ -21,7 +21,7 @@ def store_embeddings(chunks):
         documents=chunks
     )
 
-    client.persist()
+    persist_directory="chroma_db"
 
 
 def search_embeddings(query, top_k=1):
