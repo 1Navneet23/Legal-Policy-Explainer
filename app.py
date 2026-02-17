@@ -31,11 +31,12 @@ active_chain=load_session()
 class Askquestion(BaseModel):
     session_id:str
     question:str
+    mode:str='explain'
     
 class getresponse(BaseModel):
     session:str
     answer:str="answer"
-    mode:str
+    mode:str 
      
 @app.get("/health")
 async def health():
@@ -53,7 +54,7 @@ async def create_session(response:Response):
 @app.post("/upload")
 async def upload_pdf(
     file:UploadFile=File(...),
-    session_id: Optional[str] = Cookie(None)):
+    session_id: Optional[str] = Cookie(default=None)):
     if session_id is None or session_id not in active_chain:
         raise HTTPException(status_code=401, detail="No session found. Call/session/create first")
     if not file.filename.endswith(".pdf"):
@@ -64,7 +65,8 @@ async def upload_pdf(
     try:
         pdf_text=py_reader(file_path)
         chunks=text_splitter(pdf_text)
-        get_embeddings(chunks,session_id=session_id)
+        get_embeddings(chunks)
+        store_embeddings(chunks,session_id=session_id)
         active_chain[session_id]["document_ready"]=True
         save_session(active_chain)   
     except Exception as e:
@@ -81,17 +83,17 @@ async def ask_question(request:Askquestion,session_id:Optional[str]=Cookie(defau
     except Exception as e:
         raise HTTPException(status_code=500,detail=f"Failed to search:{str(e)}")
     try:
-        if request.mode="scenario":
+        if request.mode=="scenario":
             answer=reason_about_scenario(request.question,context)
         else:
             answer=explain_legal_question(request.question,context)
     except Exception as e:
         raise HTTPException(status_code=500,detail=f"Failed to generate answer:{str(e)}")
-    return getresponse(session=session_id,answer=answer,mode=request.mode)
+    return getresponse(session_id=session_id,answer=answer,mode=request.mode)
 @app.delete("/session/clear")
 async def delete_session(response:Response,session_id:Optional[str]=Cookie(default=None)):
     if session_id is None or session_id not in active_chain:
-        raise HTTPException(status_code=401,detail="No session found.  ")
+        raise HTTPException(status_code=404,detail="No session found.  ")
     file_path=os.path.join(UPLOAD_DIR,f'{session_id}.pdf')
     if os.path.exists(file_path):
         os.remove(file_path)
