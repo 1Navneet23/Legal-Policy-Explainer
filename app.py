@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException ,Request,UploadFile, File, Cookie
 from pydantic import BaseModel,Field
 from backend.vector_store import store_embeddings,search_embeddings
 from backend.model_loader import embedding_model
@@ -7,16 +7,20 @@ from backend.text_splitter import text_splitter
 from backend.pdf_reader import py_reader
 from backend.search import get_search_result
 from backend.embeddings import get_embeddings
+import shutil, os, uuid, json
+from typing import Optional
+
 app=FastAPI()
  
 active_chain={}
-class ask_question(BaseModel):
-    session_id="session"
-    question:str="question"
+class Askquestion(BaseModel):
+    session_id:str
+    question:str
+    
+class getresponse(BaseModel):
+    session:str
     answer:str="answer"
-class get_response(BaseModel):
-    answer:str="answer"
-    session="session"
+     
 @app.get("/abc")
 async def abc():
     return {"status":"success"}
