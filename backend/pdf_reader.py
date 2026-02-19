@@ -1,13 +1,11 @@
 from PyPDF2 import PdfReader
 
-def py_reader():
-    file_path = "data/legal/PL.pdf"
+def py_reader(file_path="data/legal/PL.pdf"):
     all_text = ""
 
     with open(file_path, "rb") as f:
         reader = PdfReader(f)
         total_pages = len(reader.pages)
-        #print("Total number of pages:", total_pages)
 
         for i in range(total_pages):
             page = reader.pages[i]
@@ -25,6 +23,3 @@ def py_reader():
                 print(f"Error extracting text from page {i+1}: {e}")
 
     return all_text
-
-
- 
