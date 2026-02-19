@@ -2,34 +2,38 @@ import chromadb
 from chromadb.config import Settings
 from backend.model_loader import embedding_model
 
-# persistent database on disk
-client = chromadb.Client(Settings(
-    persist_directory="chroma_db"
-))
+client = chromadb.Client(Settings(persist_directory="chroma_db"))
 
-collection = client.get_or_create_collection("legal_docs")
+ 
+def _get_collection(session_id: str):
+    """Return (or create) the ChromaDB collection dedicated to this session."""
+    return client.get_or_create_collection(f"session_{session_id}")
 
 
-def store_embeddings(chunks):
+def store_embeddings(chunks, session_id: str):
+    collection = _get_collection(session_id)      # ← scoped to this user
+
     embeddings = embedding_model.encode(chunks).tolist()
-
     ids = [f"id_{i}" for i in range(len(chunks))]
+    collection.add(ids=ids, embeddings=embeddings, documents=chunks)
 
-    collection.add(
-        ids=ids,
-        embeddings=embeddings,
-        documents=chunks
-    )
+ 
+def search_embeddings(query, session_id: str, top_k: int = 3):
+    collection = _get_collection(session_id)      # ← correct session only
 
-    persist_directory="chroma_db"
-
-
-def search_embeddings(query, top_k=1):
     query_embedding = embedding_model.encode([query]).tolist()
+    results = collection.query(query_embeddings=query_embedding, n_results=top_k)
 
-    results = collection.query(
-        query_embeddings=query_embedding,
-        n_results=top_k
-    )
+     
+    top_chunks = results["documents"][0]
+    return "\n\n---\n\n".join(top_chunks)
 
-    return results["documents"][0]
+
+def delete_session_collection(session_id: str):
+    """Clean up storage when a session is deleted."""
+    try:
+        client.delete_collection(f"session_{session_id}")
+    except Exception:
+        pass
+
+ 
