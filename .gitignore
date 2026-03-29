@@ -2,3 +2,9 @@ __pycache__
 legal/
 backend/__pycache__
 __pycache__
+# DeepEval files
+.deepeval*
+.deepeval-cache.json
+.deepeval_telemetry.txt
+.temp-deepeval-cache.json
+.temp_test_run_data.json
