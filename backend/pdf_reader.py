@@ -1,6 +1,13 @@
 from PyPDF2 import PdfReader
+import os
 
 def py_reader(file_path="data/legal/PL.pdf"):
+    if not file_path:
+        raise ValueError(f"""File path cannot be empty.""")
+
+    if not os.path.exists(file_path):
+        raise ValueError(f"""File not found at path: {file_path}""")
+
     all_text = ""
 
     with open(file_path, "rb") as f:
